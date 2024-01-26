@@ -58,25 +58,17 @@ public class UIController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            //Ã¤ÆÃÃ¢ È°¼ºÈ­ µÇ¾î ÀÖ°í ÀÎÇ²ÇÊµå¿¡ Ã¤ÆÃÀÌ ÀÔ·ÂµÈ »óÅÂ
+            //ì±„íŒ…ì°½ í™œì„±í™” ë˜ì–´ ìˆê³  ì¸í’‹í•„ë“œì— ì±„íŒ…ì´ ì…ë ¥ëœ ìƒíƒœ
             if (isStart == true && isChatFocus == true && chatField.text != "" )
             {
-                Debug.Log("Send Message");
                 ClientController.instance.SendChat(chatField.text);
                 ChangeFocus(null, false);
             }
-            //Ã¤ÆÃÃ¢ È°¼ºÈ­ µÇ¾î ÀÖ°í ÀÎÇ²ÇÊµå¿¡ Ã¤ÆÃX
-            else if (isStart == true && isChatFocus == true && chatField.text == "")
-            {
-                Debug.Log("Close Focus");
-                ChangeFocus(null, false);
-            }
-            //Ã¤ÆÃÃ¢ ºñÈ°¼ºÈ­ µÇ¾î ÀÖ´Â »óÅÂ
-            else if (isStart == true && chatField.isFocused == false && isChatFocus == false)
-            {
-                Debug.Log("On Focus");
-                ChangeFocus(null, true);
-            }
+            //ì±„íŒ…ì°½ í™œì„±í™” ë˜ì–´ ìˆê³  ì¸í’‹í•„ë“œì— ì±„íŒ…X
+            else if (isStart == true && isChatFocus == true && chatField.text == "") ChangeFocus(null, false);
+            
+            //ì±„íŒ…ì°½ ë¹„í™œì„±í™” ë˜ì–´ ìˆëŠ” ìƒíƒœ
+            else if (isStart == true && chatField.isFocused == false && isChatFocus == false) ChangeFocus(null, true);
         }
     }
     private void ChangeFocus(GameObject chatObject, bool isFocus)
@@ -132,8 +124,8 @@ public class UIController : MonoBehaviour
         {
             yield return delay;
 
-            Notify();//¾Ë¸² °¨Áö
-            scrollRect.verticalNormalizedPosition = 0;//½ºÅ©·Ñ¹Ù ¾Æ·¡·Î °íÁ¤
+            Notify();//ì•Œë¦¼ ê°ì§€
+            scrollRect.verticalNormalizedPosition = 0;//ìŠ¤í¬ë¡¤ë°” ì•„ë˜ë¡œ ê³ ì •
         }
     }
     private void Notify()
