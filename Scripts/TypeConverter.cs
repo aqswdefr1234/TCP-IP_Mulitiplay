@@ -6,7 +6,6 @@ using UnityEngine;
 using System.Linq;
 public class TypeConverter
 {
-    
     public static byte[] SerializeClientDict_Bytes(Dictionary<int, string> dictionary)
     {
         BinaryFormatter formatter = new BinaryFormatter();

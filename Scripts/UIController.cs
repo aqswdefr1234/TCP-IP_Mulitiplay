@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 using UnityEngine.EventSystems;
 public class UIController : MonoBehaviour
 {
