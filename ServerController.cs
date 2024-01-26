@@ -34,12 +34,6 @@ public class ServerController : MonoBehaviour
 
         StartCoroutine(SendCoroutine());
     }
-    public void TestBtn()
-    {//Å×½ºÆ® °á°ú closeµÈ´Ù°í null ¾Æ´Ô
-        Debug.Log($"mainDict Count : {mainDict.Count}");
-        Debug.Log($"chatList Count : {chatDict.Count}");
-        Debug.Log($"transList Count : {transDict.Count}");
-    }
     IEnumerator SendCoroutine()
     {
         while (true)
@@ -98,15 +92,15 @@ public class ServerController : MonoBehaviour
             stream = client.GetStream();
             clientNum++;
 
-            //´Ğ³×ÀÓ ¹Ş±â
+            //ë‹‰ë„¤ì„ ë°›ê¸°
             if ((count = ReadStream(client, stream, buffer)) == 0) return;
             string name = Encoding.UTF8.GetString(buffer, 0, count);
 
-            //Å¬¶óÀÌ¾ğÆ® ³Ñ¹ö Àü¼Û
+            //í´ë¼ì´ì–¸íŠ¸ ë„˜ë²„ ì „ì†¡
             byte[] nameBytes = Encoding.UTF8.GetBytes($"YourNum:{clientNum}");
             stream.Write(nameBytes, 0, nameBytes.Length);
 
-            //Å¬¶óÀÌ¾ğÆ®°¡ ¹ŞÀº ³Ñ¹ö ´Ù½Ã ¹Ş±â
+            //í´ë¼ì´ì–¸íŠ¸ê°€ ë°›ì€ ë„˜ë²„ ë‹¤ì‹œ ë°›ê¸°
             int receiveNum = ReadNumber(stream);
             if (receiveNum == 0)
             {
@@ -116,7 +110,7 @@ public class ServerController : MonoBehaviour
             mainDict[receiveNum] = (client, stream);
             clientNumDict[receiveNum] = name;
 
-            //´ÜÃ¼ ¸Ş½ÃÂ¡
+            //ë‹¨ì²´ ë©”ì‹œì§•
             string json = TypeConverter.SerializeClientDict_String(clientNumDict);
             byte[] data = Encoding.UTF8.GetBytes(json);
             SendAll(mainDict, data, data.Length);
@@ -148,10 +142,10 @@ public class ServerController : MonoBehaviour
         else return 0;
     }
     private void FindDisconnectedClient()
-    {   //¸ğµç Å¬¶óÀÌ¾ğÆ® È®ÀÎÇÏ¿© ÀÌ»óÀÌ ÀÖ´Â Å¬¶óÀÌ¾ğÆ® ¿¬°á ²÷±â
+    {   //ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ í™•ì¸í•˜ì—¬ ì´ìƒì´ ìˆëŠ” í´ë¼ì´ì–¸íŠ¸ ì—°ê²° ëŠê¸°
         foreach(int num in clientNumDict.Keys)
         {
-            //Á¤»óÀûÀ¸·Î ¿¬°áµÇ¾ú´Ù¸é °Ç³Ê¶Ù±â
+            //ì •ìƒì ìœ¼ë¡œ ì—°ê²°ë˜ì—ˆë‹¤ë©´ ê±´ë„ˆë›°ê¸°
             if (mainDict.ContainsKey(num) && transDict.ContainsKey(num) && chatDict.ContainsKey(num)) continue;
             else RemoveConnection(num);
         }
@@ -237,7 +231,7 @@ public class ServerController : MonoBehaviour
             RemoveNetworkDict(transDict, clientNum);
             clientNumDict.Remove(clientNum);
 
-            //´ÜÃ¼ ¸Ş½ÃÂ¡
+            //ë‹¨ì²´ ë©”ì‹œì§•
             string json = TypeConverter.SerializeClientDict_String(clientNumDict);
             byte[] data = Encoding.UTF8.GetBytes(json);
             SendAll(mainDict, data, data.Length);
