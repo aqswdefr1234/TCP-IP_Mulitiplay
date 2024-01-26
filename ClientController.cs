@@ -78,22 +78,10 @@ public class ClientController : MonoBehaviour
         myRot = myBody.eulerAngles;
         ChangeTransform();
     }
-    public void TestClient()
-    {
-        Debug.Log($"lastNums : {lastNums.Count}");
-        Debug.Log($"namesDict : {namesDict.Count}");
-        Debug.Log($"namesDict-----------------");
-        foreach (KeyValuePair<int, string> pair in namesDict)
-            Debug.Log($"{pair.Key} : {pair.Value}");
-        Debug.Log($"lastNums-----------------");
-        foreach (int num in lastNums)
-            Debug.Log(num);
-    }
+    
     public void SendChat(string msg)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(msg);
-        foreach (KeyValuePair<int, (TcpClient, NetworkStream)> pair in connectDict)
-            Debug.Log($"{pair.Key} : {pair.Value.Item1 == null}, {pair.Value.Item2 == null}");
         connectDict[_port + 2].Item2.Write(bytes, 0, bytes.Length);
     }
     private void ChangeTransform()
@@ -104,7 +92,7 @@ public class ClientController : MonoBehaviour
         {
             foreach (int num in lastNums)
             {
-                //³ªÀÇ Å¬¶óÀÌ¾ğÆ® µ¥ÀÌÅÍ¶ó¸é
+                //ë‚˜ì˜ í´ë¼ì´ì–¸íŠ¸ ë°ì´í„°ë¼ë©´
                 if (num == myClientNum) continue;
                 playersDict[num].position = transDict[num].Item1;
                 playersDict[num].eulerAngles = transDict[num].Item2;
@@ -149,7 +137,7 @@ public class ClientController : MonoBehaviour
     }
     private void CompareUsers(Dictionary<int, string> dict, List<int> list)
     {
-        //»õ·Î¿î À¯Àú ÀÖ´ÂÁö
+        //ìƒˆë¡œìš´ ìœ ì € ìˆëŠ”ì§€
         try
         {
             foreach (int num in dict.Keys)
@@ -161,7 +149,7 @@ public class ClientController : MonoBehaviour
                 playersDict[num] = newPlayer.GetChild(0);
                 list.Add(num);
             }
-            //³ª°£ À¯Àú ÀÖ´ÂÁö
+            //ë‚˜ê°„ ìœ ì € ìˆëŠ”ì§€
             foreach (int ls in list)
             {
                 if (dict.ContainsKey(ls)) continue;
@@ -194,30 +182,28 @@ public class ClientController : MonoBehaviour
             int count = 0;
             byte[] readBytes = new byte[1024];
 
-            //ÀÌ¸§º¸³»±â
+            //ì´ë¦„ë³´ë‚´ê¸°
             byte[] writeBytes = Encoding.UTF8.GetBytes(nickName);
             stream.Write(writeBytes, 0, writeBytes.Length);
 
-            //³Ñ¹ö ¹Ş±â
+            //ë„˜ë²„ ë°›ê¸°
             if ((count = ReadStream(tcp, stream, readBytes)) == 0) return;
             string numData = Encoding.UTF8.GetString(readBytes, 0, count);
             int num = Convert.ToInt32(numData.Substring(8, numData.Length - 8));//ex , YourNum:9
 
-            //¹øÈ£ ¹Ş°í ¹ŞÀº ¹øÈ£¸¦ ¼­¹ö·Î ´Ù½Ã Àü¼Û
+            //ë²ˆí˜¸ ë°›ê³  ë°›ì€ ë²ˆí˜¸ë¥¼ ì„œë²„ë¡œ ë‹¤ì‹œ ì „ì†¡
             byte[] numBytes = BitConverter.GetBytes(num);
             stream.Write(numBytes, 0, numBytes.Length);
             myClientNum = num; isMainStart = true;
 
-            //¸ğµç À¯Àú µ¥ÀÌÅÍ ¹Ş±â
+            //ëª¨ë“  ìœ ì € ë°ì´í„° ë°›ê¸°
             while ((count = stream.Read(readBytes, 0, readBytes.Length)) != 0)
             {
                 string dictData = Encoding.UTF8.GetString(readBytes, 0, count);
-                Debug.Log(dictData);
                 namesDict = TypeConverter.DeserializeClientDict_String(dictData);
             }
             tcp.Close();
             stream.Close();
-            Debug.Log("Main 5");
         }
         catch (SocketException e)
         {
@@ -233,7 +219,6 @@ public class ClientController : MonoBehaviour
         try
         {
             while (true) if (myClientNum != -1) break;
-            Debug.Log("TransConnection 1");
             SendMyNumber(stream);
             ReceiveResponse(stream);
             while (true)
@@ -256,15 +241,12 @@ public class ClientController : MonoBehaviour
         try
         {
             while (true) if (myClientNum != -1) break;
-            Debug.Log("ChatConnection 1");
             SendMyNumber(stream);
             ReceiveResponse(stream);
-            Debug.Log("ChatConnection 2");
             while ((count = stream.Read(readBytes, 0, readBytes.Length)) != 0)
             {
                 chatList.Add(Encoding.UTF8.GetString(readBytes, 0, count));
             }
-            Debug.Log("TransConnection 3");
             tcp.Close();
             stream.Close();
         }
@@ -301,7 +283,7 @@ public class ClientController : MonoBehaviour
             if (count % 28 != 0)
                 return;
 
-            int per = count / 28; //count / 28 => 1 ´ç 1¸íÀÇ À¯Àú transform µ¥ÀÌÅÍ
+            int per = count / 28; //count / 28 => 1 ë‹¹ 1ëª…ì˜ ìœ ì € transform ë°ì´í„°
             for (int i = 0; i < per; i++)
             {
                 int playersNum = (int)BitConverter.ToInt32(readBytes, 28 * i);
@@ -323,7 +305,6 @@ public class ClientController : MonoBehaviour
     }
     void OnApplicationQuit()
     {
-        Debug.Log("OnApplicationQuit");
         foreach(KeyValuePair<int, (TcpClient, NetworkStream)> pair in connectDict)
         {
             if (pair.Value.Item1 != null) { pair.Value.Item1.Close();}
