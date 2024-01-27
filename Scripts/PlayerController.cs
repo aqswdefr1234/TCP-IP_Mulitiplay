@@ -6,7 +6,6 @@ public class PlayerController : MonoBehaviour
 {
     const int _moveSpeed = 10;
     const int _jumpPower = 10;
-
     public int _mouseSpeed = 10;
 
     private Transform _body;
@@ -16,7 +15,6 @@ public class PlayerController : MonoBehaviour
     private float _raySize = 1.1f;
     private Rigidbody _rigid;
     private RaycastHit _hit;
-
     //LimitState
     internal bool canMove = true;
 
@@ -37,17 +35,12 @@ public class PlayerController : MonoBehaviour
     private Transform FindChildTrans(Transform target, string targetName)
     {
         foreach (Transform child in target)
-        {
-            if (child.name == targetName)
-                return child;
-        }
+            if (child.name == targetName) return child;
         return null;
     }
     private void Move()
     {
-        if (canMove == false)
-            return;
-
+        if (canMove == false) return;
         float horizon = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         float distance = _moveSpeed * Time.deltaTime;
@@ -56,16 +49,11 @@ public class PlayerController : MonoBehaviour
     private void Jump(bool isFloor)
     {
         if (Input.GetKeyDown(KeyCode.Space) && isFloor)
-        {
             _rigid.AddForce(Vector3.up * _jumpPower, ForceMode.Impulse);
-        }
     }
     private bool IsLocateFloor()
     {
-        if (Physics.Raycast(_body.position, -_body.up, out _hit, _raySize))
-        {
-            return true;
-        }
+        if (Physics.Raycast(_body.position, -_body.up, out _hit, _raySize)) return true;
         return false;
     }
     private void CameraPos()

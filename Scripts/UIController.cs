@@ -2,9 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
+
 public class UIController : MonoBehaviour
 {
     [Header("Chat Controll")]
@@ -33,8 +34,8 @@ public class UIController : MonoBehaviour
     //Static
     public static string notification = "";
     public static string ip = "";
-    public static int port = 0;
     public static string nick = "";
+    public static int port = 0;
 
     void Start()
     {
@@ -57,17 +58,22 @@ public class UIController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            //ì±„íŒ…ì°½ í™œì„±í™” ë˜ì–´ ìˆê³  ì¸í’‹í•„ë“œì— ì±„íŒ…ì´ ì…ë ¥ëœ ìƒíƒœ
+            //Ã¤ÆÃÃ¢ È°¼ºÈ­ µÇ¾î ÀÖ°í ÀÎÇ²ÇÊµå¿¡ Ã¤ÆÃÀÌ ÀÔ·ÂµÈ »óÅÂ
             if (isStart == true && isChatFocus == true && chatField.text != "" )
             {
                 ClientController.instance.SendChat(chatField.text);
                 ChangeFocus(null, false);
             }
-            //ì±„íŒ…ì°½ í™œì„±í™” ë˜ì–´ ìˆê³  ì¸í’‹í•„ë“œì— ì±„íŒ…X
-            else if (isStart == true && isChatFocus == true && chatField.text == "") ChangeFocus(null, false);
-            
-            //ì±„íŒ…ì°½ ë¹„í™œì„±í™” ë˜ì–´ ìˆëŠ” ìƒíƒœ
-            else if (isStart == true && chatField.isFocused == false && isChatFocus == false) ChangeFocus(null, true);
+            //Ã¤ÆÃÃ¢ È°¼ºÈ­ µÇ¾î ÀÖ°í ÀÎÇ²ÇÊµå¿¡ Ã¤ÆÃX
+            else if (isStart == true && isChatFocus == true && chatField.text == "")
+            {
+                ChangeFocus(null, false);
+            }
+            //Ã¤ÆÃÃ¢ ºñÈ°¼ºÈ­ µÇ¾î ÀÖ´Â »óÅÂ
+            else if (isStart == true && chatField.isFocused == false && isChatFocus == false)
+            {
+                ChangeFocus(null, true);
+            }
         }
     }
     private void ChangeFocus(GameObject chatObject, bool isFocus)
@@ -123,8 +129,8 @@ public class UIController : MonoBehaviour
         {
             yield return delay;
 
-            Notify();//ì•Œë¦¼ ê°ì§€
-            scrollRect.verticalNormalizedPosition = 0;//ìŠ¤í¬ë¡¤ë°” ì•„ë˜ë¡œ ê³ ì •
+            Notify();//¾Ë¸² °¨Áö
+            scrollRect.verticalNormalizedPosition = 0;//½ºÅ©·Ñ¹Ù ¾Æ·¡·Î °íÁ¤
         }
     }
     private void Notify()

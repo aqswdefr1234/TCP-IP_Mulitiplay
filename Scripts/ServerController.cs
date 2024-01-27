@@ -1,14 +1,14 @@
-using System.Collections.Generic;
-using System.Threading;
-using UnityEngine;
 using System;
-using System.Net;
-using System.Net.Sockets;
-using Debug = UnityEngine.Debug;
-using System.Text;
 using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading;
 using System.Collections;
-using System.ComponentModel;
+using System.Net.Sockets;
+using System.Collections.Generic;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
+
 public class ServerController : MonoBehaviour
 {
     //Set Network
@@ -17,7 +17,7 @@ public class ServerController : MonoBehaviour
     Dictionary<int, (TcpClient, NetworkStream)> mainDict = new Dictionary<int, (TcpClient, NetworkStream)>();
     Dictionary<int, (TcpClient, NetworkStream)> chatDict = new Dictionary<int, (TcpClient, NetworkStream)>();
     Dictionary<int, (TcpClient, NetworkStream)> transDict = new Dictionary<int, (TcpClient, NetworkStream)>();
-
+    List<TcpListener> serverList = new List<TcpListener>();
     //Read and Write Data
     List<byte> transByteList = new List<byte>();
     byte[] transBytes = new byte[28];
@@ -45,15 +45,15 @@ public class ServerController : MonoBehaviour
     }
     private void ServerThreadStart(string ip, int port, Thread thread, string serverName)
     {
+        IPAddress localAddr = IPAddress.Parse(ip);
+        TcpListener tcpListener = new TcpListener(localAddr, port);
+        serverList.Add(tcpListener);
         thread = new Thread(new ThreadStart(() =>
         {
-            TcpListener tcp = null;
-            ServerStart(ip, port, tcp, client =>
+            ServerStart(tcpListener, client =>
             {
                 if (serverName == "Main")
-                {
                     MainServer(client);
-                } 
                 if (serverName == "Chat")
                     DataServer(client, chatDict);
                 if (serverName == "Transform")
@@ -62,14 +62,11 @@ public class ServerController : MonoBehaviour
         }));
         thread.Start();
     }
-    private void ServerStart(string ip, int port, TcpListener server, Action<TcpClient> enterClient)
+    private void ServerStart(TcpListener server, Action<TcpClient> enterClient)
     {
         try
         {
-            IPAddress localAddr = IPAddress.Parse(ip);
-            server = new TcpListener(localAddr, port);
             server.Start();
-
             while (true)
             {
                 Debug.Log("Waiting for connection...");
@@ -92,15 +89,15 @@ public class ServerController : MonoBehaviour
             stream = client.GetStream();
             clientNum++;
 
-            //ë‹‰ë„¤ì„ ë°›ê¸°
+            //´Ğ³×ÀÓ ¹Ş±â
             if ((count = ReadStream(client, stream, buffer)) == 0) return;
             string name = Encoding.UTF8.GetString(buffer, 0, count);
 
-            //í´ë¼ì´ì–¸íŠ¸ ë„˜ë²„ ì „ì†¡
+            //Å¬¶óÀÌ¾ğÆ® ³Ñ¹ö Àü¼Û
             byte[] nameBytes = Encoding.UTF8.GetBytes($"YourNum:{clientNum}");
             stream.Write(nameBytes, 0, nameBytes.Length);
 
-            //í´ë¼ì´ì–¸íŠ¸ê°€ ë°›ì€ ë„˜ë²„ ë‹¤ì‹œ ë°›ê¸°
+            //Å¬¶óÀÌ¾ğÆ®°¡ ¹ŞÀº ³Ñ¹ö ´Ù½Ã ¹Ş±â
             int receiveNum = ReadNumber(stream);
             if (receiveNum == 0)
             {
@@ -110,7 +107,7 @@ public class ServerController : MonoBehaviour
             mainDict[receiveNum] = (client, stream);
             clientNumDict[receiveNum] = name;
 
-            //ë‹¨ì²´ ë©”ì‹œì§•
+            //´ÜÃ¼ ¸Ş½ÃÂ¡
             string json = TypeConverter.SerializeClientDict_String(clientNumDict);
             byte[] data = Encoding.UTF8.GetBytes(json);
             SendAll(mainDict, data, data.Length);
@@ -142,10 +139,10 @@ public class ServerController : MonoBehaviour
         else return 0;
     }
     private void FindDisconnectedClient()
-    {   //ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ í™•ì¸í•˜ì—¬ ì´ìƒì´ ìˆëŠ” í´ë¼ì´ì–¸íŠ¸ ì—°ê²° ëŠê¸°
+    {   //¸ğµç Å¬¶óÀÌ¾ğÆ® È®ÀÎÇÏ¿© ÀÌ»óÀÌ ÀÖ´Â Å¬¶óÀÌ¾ğÆ® ¿¬°á ²÷±â
         foreach(int num in clientNumDict.Keys)
         {
-            //ì •ìƒì ìœ¼ë¡œ ì—°ê²°ë˜ì—ˆë‹¤ë©´ ê±´ë„ˆë›°ê¸°
+            //Á¤»óÀûÀ¸·Î ¿¬°áµÇ¾ú´Ù¸é °Ç³Ê¶Ù±â
             if (mainDict.ContainsKey(num) && transDict.ContainsKey(num) && chatDict.ContainsKey(num)) continue;
             else RemoveConnection(num);
         }
@@ -231,7 +228,7 @@ public class ServerController : MonoBehaviour
             RemoveNetworkDict(transDict, clientNum);
             clientNumDict.Remove(clientNum);
 
-            //ë‹¨ì²´ ë©”ì‹œì§•
+            //´ÜÃ¼ ¸Ş½ÃÂ¡
             string json = TypeConverter.SerializeClientDict_String(clientNumDict);
             byte[] data = Encoding.UTF8.GetBytes(json);
             SendAll(mainDict, data, data.Length);
@@ -248,15 +245,12 @@ public class ServerController : MonoBehaviour
         }
     }
     void OnApplicationQuit()
-    {
-        for (int i = 0; i < threadArr.Length; i++)
-        {
-            if (threadArr[i] != null)
-                threadArr[i].Abort();
-        }
+    {   // WSACancelBlockingCall : ¸ŞÀÎ½º·¹µå¿¡¼­ ´Ù¸¥ ½º·¹µå¿¡¼­ ÀÛµ¿ÇÏ´Â ¼­¹ö¸¦ Á¾·áÇÒ ¶§ ÇØ´ç ¿¡·¯ ¹ß»ı
+        foreach (TcpListener server in serverList)
+            if (server != null) server.Stop();
         foreach (int num in clientNumDict.Keys)
-        {
             RemoveConnection(num);
-        } 
+        foreach(Thread thr in threadArr)
+            if (thr != null) thr.Abort();
     }
 }

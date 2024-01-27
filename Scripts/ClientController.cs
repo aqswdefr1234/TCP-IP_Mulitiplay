@@ -3,14 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using System.Threading;
-using System.ComponentModel;
 using System.Net.Sockets;
 using System.Text;
-using System.Net;
 using System;
 using TMPro;
-using System.IO;
-using System.Linq;
 public class ClientController : MonoBehaviour
 {
     //Set Network
@@ -78,10 +74,9 @@ public class ClientController : MonoBehaviour
         myRot = myBody.eulerAngles;
         ChangeTransform();
     }
-    
     public void SendChat(string msg)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes(msg);
+        byte[] bytes = Encoding.UTF8.GetBytes($"{nickName} : {msg}");
         connectDict[_port + 2].Item2.Write(bytes, 0, bytes.Length);
     }
     private void ChangeTransform()
@@ -92,7 +87,7 @@ public class ClientController : MonoBehaviour
         {
             foreach (int num in lastNums)
             {
-                //ÎÇòÏùò ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ Îç∞Ïù¥ÌÑ∞ÎùºÎ©¥
+                //≥™¿« ≈¨∂Û¿Ãæ∆Æ µ•¿Ã≈Õ∂Û∏È
                 if (num == myClientNum) continue;
                 playersDict[num].position = transDict[num].Item1;
                 playersDict[num].eulerAngles = transDict[num].Item2;
@@ -137,7 +132,7 @@ public class ClientController : MonoBehaviour
     }
     private void CompareUsers(Dictionary<int, string> dict, List<int> list)
     {
-        //ÏÉàÎ°úÏö¥ Ïú†Ï†Ä ÏûàÎäîÏßÄ
+        //ªı∑ŒøÓ ¿Ø¿˙ ¿÷¥¬¡ˆ
         try
         {
             foreach (int num in dict.Keys)
@@ -149,7 +144,7 @@ public class ClientController : MonoBehaviour
                 playersDict[num] = newPlayer.GetChild(0);
                 list.Add(num);
             }
-            //ÎÇòÍ∞Ñ Ïú†Ï†Ä ÏûàÎäîÏßÄ
+            //≥™∞£ ¿Ø¿˙ ¿÷¥¬¡ˆ
             foreach (int ls in list)
             {
                 if (dict.ContainsKey(ls)) continue;
@@ -182,21 +177,21 @@ public class ClientController : MonoBehaviour
             int count = 0;
             byte[] readBytes = new byte[1024];
 
-            //Ïù¥Î¶ÑÎ≥¥ÎÇ¥Í∏∞
+            //¿Ã∏ß∫∏≥ª±‚
             byte[] writeBytes = Encoding.UTF8.GetBytes(nickName);
             stream.Write(writeBytes, 0, writeBytes.Length);
 
-            //ÎÑòÎ≤Ñ Î∞õÍ∏∞
+            //≥—πˆ πﬁ±‚
             if ((count = ReadStream(tcp, stream, readBytes)) == 0) return;
             string numData = Encoding.UTF8.GetString(readBytes, 0, count);
             int num = Convert.ToInt32(numData.Substring(8, numData.Length - 8));//ex , YourNum:9
 
-            //Î≤àÌò∏ Î∞õÍ≥† Î∞õÏùÄ Î≤àÌò∏Î•º ÏÑúÎ≤ÑÎ°ú Îã§Ïãú Ï†ÑÏÜ°
+            //π¯»£ πﬁ∞Ì πﬁ¿∫ π¯»£∏¶ º≠πˆ∑Œ ¥ŸΩ√ ¿¸º€
             byte[] numBytes = BitConverter.GetBytes(num);
             stream.Write(numBytes, 0, numBytes.Length);
             myClientNum = num; isMainStart = true;
 
-            //Î™®Îì† Ïú†Ï†Ä Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞
+            //∏µÁ ¿Ø¿˙ µ•¿Ã≈Õ πﬁ±‚
             while ((count = stream.Read(readBytes, 0, readBytes.Length)) != 0)
             {
                 string dictData = Encoding.UTF8.GetString(readBytes, 0, count);
@@ -283,7 +278,7 @@ public class ClientController : MonoBehaviour
             if (count % 28 != 0)
                 return;
 
-            int per = count / 28; //count / 28 => 1 Îãπ 1Î™ÖÏùò Ïú†Ï†Ä transform Îç∞Ïù¥ÌÑ∞
+            int per = count / 28; //count / 28 => 1 ¥Á 1∏Ì¿« ¿Ø¿˙ transform µ•¿Ã≈Õ
             for (int i = 0; i < per; i++)
             {
                 int playersNum = (int)BitConverter.ToInt32(readBytes, 28 * i);
